@@ -14,17 +14,17 @@ type TextView struct {
 	field      fieldview.FocusFielder
 	font       *impress.Font
 	lineHeight int
-	textColor  fn.Color
+	foreground fn.Color
 	cursor     view.Viewer
 }
 
 // New creates a TextView
-func New(fielder fieldview.FocusFielder, font *impress.Font, LineHeight int, foreground fn.Color, cursor view.Viewer) *TextView {
+func New(fielder fieldview.FocusFielder, font *impress.Font, lineHeight int, foreground fn.Color, cursor view.Viewer) *TextView {
 	return &TextView{
 		field:      fielder,
 		font:       font,
-		lineHeight: LineHeight,
-		textColor:  foreground,
+		lineHeight: lineHeight,
+		foreground: foreground,
 		cursor:     cursor,
 	}
 }
@@ -48,7 +48,7 @@ func (v *TextView) Draw(w *impress.Window, rect image.Rectangle) {
 	lines := v.font.Split(v.field.String(), rect.Dx(), 0)
 	from := rect.Min
 	for _, line := range lines {
-		w.Text(line, v.font, from, v.textColor())
+		w.Text(line, v.font, from, v.foreground())
 		from = from.Add(image.Pt(0, v.lineHeight))
 	}
 

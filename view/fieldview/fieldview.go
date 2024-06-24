@@ -23,19 +23,19 @@ type FocusFielder interface {
 
 // FieldView is a Viewer for a field. Cursor is an element for drawing in selected field
 type FieldView struct {
-	field     FocusFielder
-	font      *impress.Font
-	textColor fn.Color
-	cursor    view.Viewer
+	field      FocusFielder
+	font       *impress.Font
+	foreground fn.Color
+	cursor     view.Viewer
 }
 
 // New creates a FieldView
 func New(fielder FocusFielder, font *impress.Font, foreground fn.Color, cursor view.Viewer) *FieldView {
 	return &FieldView{
-		field:     fielder,
-		font:      font,
-		textColor: foreground,
-		cursor:    cursor,
+		field:      fielder,
+		font:       font,
+		foreground: foreground,
+		cursor:     cursor,
 	}
 }
 
@@ -47,7 +47,7 @@ func (v *FieldView) Size(size image.Point) image.Point {
 // Draw draws a view element
 func (v *FieldView) Draw(w *impress.Window, rect image.Rectangle) {
 	text := v.field.String()
-	w.Text(text, v.font, rect.Min, v.textColor())
+	w.Text(text, v.font, rect.Min, v.foreground())
 
 	if v.field.Focused() {
 		cursorPoint := rect.Min.Add(image.Pt(v.font.Size(text[:v.field.Cursor()]).X, 0))
