@@ -55,7 +55,7 @@ func (v *ForewordView) Draw(w *impress.Window, rect image.Rectangle) {
 			w.Text(line, v.font, from, v.foreground())
 			from.Y += v.lineHeight
 			lineCount++
-			if lineCount > v.lineCount {
+			if lineCount >= v.lineCount {
 				return
 			}
 		}

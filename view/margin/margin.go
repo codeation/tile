@@ -26,8 +26,9 @@ func New(viewer view.Viewer, margin fn.Point) *MarginView {
 // Size returns size of a view element
 func (v *MarginView) Size(size image.Point) image.Point {
 	marginSize := v.margin()
-	innerSize := v.Viewer.Size(size)
-	return innerSize.Add(marginSize.Mul(2))
+	x := max(size.X-marginSize.X*2, 0)
+	y := max(size.Y-marginSize.Y*2, 0)
+	return v.Viewer.Size(image.Pt(x, y)).Add(marginSize.Mul(2))
 }
 
 // Draw draws a view element
