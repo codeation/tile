@@ -21,7 +21,7 @@ type App interface {
 type Linker interface {
 	Chan() <-chan event.Eventer
 	Put(ctx context.Context, ev event.Eventer)
-	Link(ctx context.Context, actor Actor)
+	Link(ctx context.Context, appFramer AppFramer, actor Actor)
 }
 
 // AppFramer is an interface for accessing application methods and the parent frame

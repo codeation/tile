@@ -49,8 +49,8 @@ func (app *mainApp) InnerRect() image.Rectangle {
 
 func (app *mainApp) Run(ctx context.Context, child Actor) {
 	ctx, app.canceFunc = context.WithCancel(ctx)
-	link := New(app)
-	link.Link(ctx, child)
+	link := New()
+	link.Link(ctx, app, child)
 	defer link.Close()
 
 	for {

@@ -21,12 +21,7 @@ type EventLink struct {
 }
 
 // New creates an empty EventLink
-func New(appFramer AppFramer) *EventLink {
-	return &EventLink{
-		events:    make(chan event.Eventer, 64),
-		appFramer: appFramer,
-	}
-}
+func New() *EventLink { return new(EventLink) }
 
 // Close cancels the child context and waits for the child goroutines
 func (c *EventLink) Close() {
@@ -40,13 +35,16 @@ func (c *EventLink) Chan() <-chan event.Eventer {
 }
 
 // Link launches the child controller
-func (c *EventLink) Link(parentCtx context.Context, child Actor) {
+func (c *EventLink) Link(parentCtx context.Context, appFramer AppFramer, child Actor) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	if c.cancelFunc != nil {
 		c.cancelFunc()
 	}
+
+	c.events = make(chan event.Eventer, 64)
+	c.appFramer = appFramer
 
 	ctx, cancelFunc := context.WithCancel(parentCtx)
 	c.actor = child
