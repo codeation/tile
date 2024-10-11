@@ -19,19 +19,18 @@ var (
 	redColor   color.Color = color.RGBA{R: 255, A: 255}
 )
 
-type Example struct{}
+type Example struct {
+	font *impress.Font
+}
 
 func (e *Example) Action(ctx context.Context, app eventlink.App) {
 	w := app.NewWindow(app.InnerRect(), whileColor)
 	defer w.Drop()
 
-	font := impress.NewFont(15, map[string]string{"family": "Verdana"})
-	defer font.Close()
-
 	for {
 		if len(app.Chan()) == 0 {
 			w.Clear()
-			w.Text("Hello, world!", font, image.Pt(200, 100), blackColor)
+			w.Text("Hello, world!", e.font, image.Pt(200, 100), blackColor)
 			w.Line(image.Pt(200, 120), image.Pt(300, 120), redColor)
 			w.Show()
 			app.Sync()
@@ -66,6 +65,7 @@ func main() {
 	app := eventlink.MainApp(impress.NewApplication(rect, "Panels"))
 	defer app.Close()
 
-	exampleActor := new(Example)
+	exampleActor := &Example{font: app.NewFont(15, map[string]string{"family": "Verdana"})}
+	defer exampleActor.font.Close()
 	app.Run(ctx, exampleActor)
 }
