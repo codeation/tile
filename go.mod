@@ -1,6 +1,6 @@
 module github.com/codeation/tile
 
-go 1.23.2
+go 1.23.3
 
 require github.com/codeation/impress v0.5.0
 
