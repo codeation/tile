@@ -15,11 +15,17 @@ type ColumnView struct {
 }
 
 // New creates a ColumnView
-func New(marginY fn.Int, elems ...view.Viewer) *ColumnView {
+func New(elems ...view.Viewer) *ColumnView {
 	return &ColumnView{
 		elems:   elems,
-		marginY: marginY,
+		marginY: fn.Const(0),
 	}
+}
+
+// MarginY sets a margin space function
+func (v *ColumnView) MarginY(marginY fn.Int) *ColumnView {
+	v.marginY = marginY
+	return v
 }
 
 // Size returns size of a view element

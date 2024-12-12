@@ -16,11 +16,17 @@ type MarginView struct {
 }
 
 // New creates a MarginView
-func New(viewer view.Viewer, margin fn.Point) *MarginView {
+func New(viewer view.Viewer) *MarginView {
 	return &MarginView{
 		Viewer: viewer,
-		margin: margin,
+		margin: fn.Const(image.Point{}),
 	}
+}
+
+// Margin sets margin space function
+func (v *MarginView) Margin(margin fn.Point) *MarginView {
+	v.margin = margin
+	return v
 }
 
 // Size returns size of a view element

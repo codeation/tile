@@ -15,11 +15,17 @@ type MinSizeView struct {
 }
 
 // New returns a MinSizeView
-func New(view view.Viewer, size fn.Point) *MinSizeView {
+func New(view view.Viewer) *MinSizeView {
 	return &MinSizeView{
 		Viewer: view,
-		size:   size,
+		size:   fn.Const(image.Point{}),
 	}
+}
+
+// MinSize sets a minimal size function
+func (v *MinSizeView) MinSize(size fn.Point) *MinSizeView {
+	v.size = size
+	return v
 }
 
 // Size returns size of a view element
