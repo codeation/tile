@@ -73,11 +73,13 @@ func (v *FieldView) splitText(rect image.Rectangle) ([]string, int, int) {
 		}
 		output = append(output, lines...)
 	}
-	halfRow := min(row+(v.maxRows+1)/2, len(output))
-	minRow := max(halfRow-v.maxRows, 0)
-	maxRow := min(minRow+v.maxRows, len(output))
-	output = output[minRow:maxRow]
-	row -= minRow
+	if v.maxRows != 0 {
+		halfRow := min(row+(v.maxRows+1)/2, len(output))
+		minRow := max(halfRow-v.maxRows, 0)
+		maxRow := min(minRow+v.maxRows, len(output))
+		output = output[minRow:maxRow]
+		row -= minRow
+	}
 	return output, row, col
 }
 
