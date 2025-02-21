@@ -33,7 +33,7 @@ func (e *Example) Action(ctx context.Context, app eventlink.App) {
 			w.Text("Hello, world!", e.font, image.Pt(200, 100), blackColor)
 			w.Line(image.Pt(200, 120), image.Pt(300, 120), redColor)
 			w.Show()
-			app.Sync()
+			app.Application().Sync()
 		}
 
 		e, ok := ctxchan.Get(ctx, app.Chan())
@@ -65,7 +65,7 @@ func main() {
 	app := eventlink.MainApp(impress.NewApplication(rect, "Panels"))
 	defer app.Close()
 
-	exampleActor := &Example{font: app.NewFont(15, map[string]string{"family": "Verdana"})}
+	exampleActor := &Example{font: app.Application().NewFont(15, map[string]string{"family": "Verdana"})}
 	defer exampleActor.font.Close()
 	app.Run(ctx, exampleActor)
 }

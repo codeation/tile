@@ -32,7 +32,7 @@ type AppFramer interface {
 
 // Control is an interface for accessing application methods
 type Control interface {
-	Sync()
+	Application() *impress.Application
 	Cancel()
 }
 

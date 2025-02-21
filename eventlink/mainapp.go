@@ -3,6 +3,7 @@ package eventlink
 import (
 	"context"
 	"image"
+	"image/color"
 
 	"github.com/codeation/impress"
 	"github.com/codeation/impress/event"
@@ -13,18 +14,22 @@ import (
 )
 
 type mainApp struct {
-	*impress.Application
-	rect      *syncvar.Var[image.Point]
-	canceFunc func()
+	application *impress.Application
+	rect        *syncvar.Var[image.Point]
+	canceFunc   func()
 }
 
 // MainApp creates root AppFramer from impress.Application
 func MainApp(a *impress.Application) *mainApp {
 	return &mainApp{
-		Application: a,
+		application: a,
 		rect:        syncvar.New(image.Point{}),
 		canceFunc:   func() {},
 	}
+}
+
+func (app *mainApp) Application() *impress.Application {
+	return app.application
 }
 
 func (app *mainApp) Cancel() {
@@ -32,11 +37,15 @@ func (app *mainApp) Cancel() {
 }
 
 func (app *mainApp) Close() {
-	app.Application.Close()
+	app.application.Close()
+}
+
+func (app *mainApp) NewWindow(rect image.Rectangle, background color.Color) *impress.Window {
+	return app.application.NewWindow(rect, background)
 }
 
 func (app *mainApp) NewRectFrame(rect image.Rectangle) *rectframe.RectFrame {
-	return rectframe.New(app.Application, rect)
+	return rectframe.New(app.application, rect)
 }
 
 func (app *mainApp) Rect() image.Rectangle {
@@ -54,7 +63,7 @@ func (app *mainApp) Run(ctx context.Context, child Actor) {
 	defer link.Close()
 
 	for {
-		e, ok := ctxchan.Get(ctx, app.Application.Chan())
+		e, ok := ctxchan.Get(ctx, app.application.Chan())
 		if !ok {
 			return
 		}
