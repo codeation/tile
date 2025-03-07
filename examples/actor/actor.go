@@ -14,26 +14,23 @@ import (
 )
 
 var (
-	blackColor color.Color = color.RGBA{A: 255}
-	whileColor color.Color = color.RGBA{R: 255, G: 255, B: 255, A: 255}
-	redColor   color.Color = color.RGBA{R: 255, A: 255}
+	blackColor = color.RGBA{A: 255}
+	whileColor = color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	redColor   = color.RGBA{R: 255, A: 255}
 )
 
-type Example struct {
-	font *impress.Font
-}
+type SimpleActor struct{}
 
-func (e *Example) Action(ctx context.Context, app eventlink.App) {
+func (a *SimpleActor) Action(ctx context.Context, app eventlink.App) {
+	font := app.Application().NewFont(15, map[string]string{"family": "Verdana"})
+	defer font.Close()
+
 	w := app.NewWindow(app.InnerRect(), whileColor)
 	defer w.Drop()
 
 	for {
 		if len(app.Chan()) == 0 {
-			w.Clear()
-			w.Text("Hello, world!", e.font, image.Pt(200, 100), blackColor)
-			w.Line(image.Pt(200, 120), image.Pt(300, 120), redColor)
-			w.Show()
-			app.Application().Sync()
+			drawMessage(app, w, font, "Hello, world!")
 		}
 
 		e, ok := ctxchan.Get(ctx, app.Chan())
@@ -49,23 +46,34 @@ func (e *Example) Action(ctx context.Context, app eventlink.App) {
 				return
 			}
 
+		case event.Keyboard:
+			switch ev {
+			case event.KeyEscape, event.KeyExit:
+				app.Cancel()
+				return
+			}
+
 		case event.Configure:
 			w.Size(app.InnerRect())
-
 		}
 	}
 }
 
-func (e *Example) Wait() {}
+func (a *SimpleActor) Wait() {}
+
+func drawMessage(app eventlink.App, w *impress.Window, font *impress.Font, message string) {
+	w.Clear()
+	textSize := font.Size(message)
+	offset := app.InnerRect().Size().Sub(textSize).Div(2)
+	w.Text(message, font, offset, blackColor)
+	w.Line(offset.Add(image.Pt(0, textSize.Y)), offset.Add(textSize), redColor)
+	w.Show()
+	app.Application().Sync()
+}
 
 func main() {
-	ctx := context.Background()
-
-	rect := image.Rect(0, 0, 480, 240)
-	app := eventlink.MainApp(impress.NewApplication(rect, "Panels"))
+	app := eventlink.MainApp(impress.NewApplication(image.Rect(0, 0, 480, 240), "Panels"))
 	defer app.Close()
 
-	exampleActor := &Example{font: app.Application().NewFont(15, map[string]string{"family": "Verdana"})}
-	defer exampleActor.font.Close()
-	app.Run(ctx, exampleActor)
+	app.Run(context.Background(), new(SimpleActor))
 }
