@@ -13,51 +13,61 @@ import (
 	"github.com/codeation/tile/eventlink/syncvar"
 )
 
-type mainApp struct {
+// RootApp is wrapper to impress.Application to implement AppFramer interface
+type RootApp struct {
 	application *impress.Application
 	rect        *syncvar.Var[image.Point]
-	canceFunc   func()
+	cancelFunc  func()
 }
 
-// MainApp creates root AppFramer from impress.Application
-func MainApp(a *impress.Application) *mainApp {
-	return &mainApp{
+// MainApp creates RootApp from impress.Application
+func MainApp(a *impress.Application) *RootApp {
+	return &RootApp{
 		application: a,
 		rect:        syncvar.New(image.Point{}),
-		canceFunc:   func() {},
+		cancelFunc:  func() {},
 	}
 }
 
-func (app *mainApp) Application() *impress.Application {
+// Application returns impress.Application
+func (app *RootApp) Application() *impress.Application {
 	return app.application
 }
 
-func (app *mainApp) Cancel() {
-	app.canceFunc()
+// Cancel cancels child context.Context
+func (app *RootApp) Cancel() {
+	app.cancelFunc()
 }
 
-func (app *mainApp) Close() {
+// Close closes MainApp resources include impress.Application
+func (app *RootApp) Close() {
 	app.application.Close()
 }
 
-func (app *mainApp) NewWindow(rect image.Rectangle, background color.Color) *impress.Window {
+// NewWindow creates child window
+func (app *RootApp) NewWindow(rect image.Rectangle, background color.Color) *impress.Window {
 	return app.application.NewWindow(rect, background)
 }
 
-func (app *mainApp) NewRectFrame(rect image.Rectangle) *rectframe.RectFrame {
+// NewRectFrame creates child frame
+func (app *RootApp) NewRectFrame(rect image.Rectangle) *rectframe.RectFrame {
 	return rectframe.New(app.application, rect)
 }
 
-func (app *mainApp) Rect() image.Rectangle {
+// Rects returns outer size of main frame
+func (app *RootApp) Rect() image.Rectangle {
 	return image.Rectangle{Max: app.rect.Get()}
 }
 
-func (app *mainApp) InnerRect() image.Rectangle {
+// Rects returns inner size of  main frame
+func (app *RootApp) InnerRect() image.Rectangle {
 	return image.Rectangle{Max: app.rect.Get()}
 }
 
-func (app *mainApp) Run(ctx context.Context, child Actor) {
-	ctx, app.canceFunc = context.WithCancel(ctx)
+// Run runs child actor
+func (app *RootApp) Run(parentCtx context.Context, child Actor) {
+	var ctx context.Context
+	ctx, app.cancelFunc = context.WithCancel(parentCtx)
 	link := New()
 	link.Link(ctx, app, child)
 	defer link.Close()

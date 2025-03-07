@@ -9,7 +9,7 @@ import (
 	"github.com/codeation/tile/eventlink/ctxchan"
 )
 
-// EventLink is the event channel for the child window controller
+// EventLink represents a channel for managing events between the parent and child controllers.
 type EventLink struct {
 	events     chan event.Eventer
 	appFramer  AppFramer
@@ -20,21 +20,21 @@ type EventLink struct {
 	wg         sync.WaitGroup
 }
 
-// New creates an empty EventLink
+// New creates and returns a new EventLink.
 func New() *EventLink { return new(EventLink) }
 
-// Close cancels the child context and waits for the child goroutines
+// Close cancels the child context and waits for all child goroutines to complete.
 func (c *EventLink) Close() {
 	c.Cancel()
 	c.wg.Wait()
 }
 
-// Chan returns a channel for putting events to child window controller
+// Chan returns a channel for receiving events intended for the child window controller.
 func (c *EventLink) Chan() <-chan event.Eventer {
 	return c.events
 }
 
-// Link launches the child controller
+// Link launches the child window controller. Previous child controller context will be cancelled, if one exists.
 func (c *EventLink) Link(parentCtx context.Context, appFramer AppFramer, child Actor) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -60,7 +60,7 @@ func (c *EventLink) Link(parentCtx context.Context, appFramer AppFramer, child A
 	}()
 }
 
-// Cancel cancels the child context
+// Cancel cancels the current child context, if one exists.
 func (c *EventLink) Cancel() {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
@@ -70,12 +70,12 @@ func (c *EventLink) Cancel() {
 	}
 }
 
-// Put puts the event into the child channel if context is not canceled
+// Put sends an event to the child channel if the context has not been canceled.
 func (c *EventLink) Put(ctx context.Context, ev event.Eventer) {
 	ctxchan.Put(ctx, c.events, ev)
 }
 
-// Actor returns child controller and child context status
+// Actor returns the current child controller and a boolean indicating if the child context is still active.
 func (c *EventLink) Actor() (Actor, bool) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
