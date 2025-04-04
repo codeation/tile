@@ -8,9 +8,7 @@ import (
 func Put[T any](ctx context.Context, c chan<- T, message T) {
 	select {
 	case <-ctx.Done():
-		return
 	case c <- message:
-		return
 	}
 }
 
@@ -18,8 +16,7 @@ func Put[T any](ctx context.Context, c chan<- T, message T) {
 func Get[T any](ctx context.Context, c <-chan T) (message T, ok bool) {
 	select {
 	case <-ctx.Done():
-		return
 	case message, ok = <-c:
-		return
 	}
+	return
 }
