@@ -28,7 +28,7 @@ func New(viewer view.Viewer, foreground fn.Color, background fn.Color) *BoxView 
 
 // Draw draws a view element
 func (v *BoxView) Draw(w *impress.Window, rect image.Rectangle) {
-	size := v.Viewer.Size(rect.Size())
+	size := v.Size(rect.Size())
 	boxRect := image.Rectangle{Min: rect.Min, Max: rect.Min.Add(size)}
 	w.Fill(boxRect, v.background())
 	border.Border(w, boxRect, v.foreground())

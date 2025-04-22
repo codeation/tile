@@ -12,16 +12,20 @@ import (
 	"github.com/codeation/tile/eventlink"
 )
 
+// FieldControl provides control logic for a Field element, handling various events such as keyboard inputs and clipboard actions.
 type FieldControl struct {
 	f *field.Field
 }
 
+// New creates and returns a new FieldControl for the given Field element.
 func New(f *field.Field) *FieldControl {
 	return &FieldControl{
 		f: f,
 	}
 }
 
+// Control processes events for the FieldControl, updating the Field element based on keyboard and clipboard inputs.
+// It delegates to the prior control function for unhandled events.
 func (c *FieldControl) Control(ctx context.Context, app eventlink.App, e event.Eventer, prior control.DoFunc) {
 	switch ev := e.(type) {
 	case event.Keyboard:
