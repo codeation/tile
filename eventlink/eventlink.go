@@ -31,6 +31,9 @@ func (c *EventLink) Close() {
 
 // Chan returns a channel for receiving events intended for the child window controller.
 func (c *EventLink) Chan() <-chan event.Eventer {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
 	return c.events
 }
 
@@ -72,6 +75,9 @@ func (c *EventLink) Cancel() {
 
 // Put sends an event to the child channel if the context has not been canceled.
 func (c *EventLink) Put(ctx context.Context, ev event.Eventer) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
 	ctxchan.Put(ctx, c.events, ev)
 }
 
