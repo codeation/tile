@@ -54,13 +54,11 @@ func (c *EventLink) Link(parentCtx context.Context, appFramer AppFramer, child A
 	c.ctx = ctx
 	c.cancelFunc = cancelFunc
 
-	c.wg.Add(1)
-	go func() {
-		defer c.wg.Done()
+	c.wg.Go(func() {
 		child.Action(ctx, AppWithLink(c.appFramer, c))
 		cancelFunc()
 		child.Wait()
-	}()
+	})
 }
 
 // Cancel cancels the current child context, if one exists.
