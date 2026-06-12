@@ -78,10 +78,8 @@ func (app *RootApp) Run(parentCtx context.Context, child Actor) {
 			return
 		}
 
-		if e.Type() == event.ConfigureType {
-			if ev, ok := e.(event.Configure); ok {
-				app.rect.Set(ev.InnerSize)
-			}
+		if ev, ok := e.(event.Configure); ok {
+			app.rect.Set(ev.InnerSize)
 		}
 
 		link.Put(ctx, e)
