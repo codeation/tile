@@ -22,11 +22,16 @@ func New(size image.Point, foreground fn.Color) *Solid {
 }
 
 // Size returns size of a view element
-func (s *Solid) Size(size image.Point) image.Point {
+func (s *Solid) Size() image.Point {
 	return s.size
 }
 
-// Draw draws a view element
-func (s *Solid) Draw(w *impress.Window, rect image.Rectangle) {
-	w.Fill(image.Rectangle{Min: rect.Min, Max: rect.Min.Add(s.size)}, s.foreground())
+// Draw draws a element in a window width specified offset
+func (s *Solid) Draw(w *impress.Window, from image.Point) {
+	w.Fill(image.Rectangle{Min: from, Max: from.Add(s.size)}, s.foreground())
+}
+
+// Select returns active element and its rect for the click point
+func (s *Solid) Select(pt image.Point, from image.Point) (any, image.Rectangle) {
+	return nil, image.Rectangle{}
 }

@@ -4,19 +4,19 @@ import (
 	"context"
 	"image"
 	"image/color"
+	"sync/atomic"
 
 	"github.com/codeation/impress"
 	"github.com/codeation/impress/event"
 
 	"github.com/codeation/tile/eventlink/ctxchan"
 	"github.com/codeation/tile/eventlink/rectframe"
-	"github.com/codeation/tile/eventlink/syncvar"
 )
 
 // RootApp is wrapper to impress.Application to implement AppFramer interface
 type RootApp struct {
 	application *impress.Application
-	rect        *syncvar.Var[image.Point]
+	rect        atomic.Value // image.Point
 	cancelFunc  func()
 }
 
@@ -24,7 +24,6 @@ type RootApp struct {
 func MainApp(a *impress.Application) *RootApp {
 	return &RootApp{
 		application: a,
-		rect:        syncvar.New(image.Point{}),
 		cancelFunc:  func() {},
 	}
 }
@@ -56,12 +55,20 @@ func (app *RootApp) NewRectFrame(rect image.Rectangle) *rectframe.RectFrame {
 
 // Rects returns outer size of main frame
 func (app *RootApp) Rect() image.Rectangle {
-	return image.Rectangle{Max: app.rect.Get()}
+	var rect image.Point
+	if v, ok := app.rect.Load().(image.Point); ok {
+		rect = v
+	}
+	return image.Rectangle{Max: rect}
 }
 
 // Rects returns inner size of  main frame
 func (app *RootApp) InnerRect() image.Rectangle {
-	return image.Rectangle{Max: app.rect.Get()}
+	var rect image.Point
+	if v, ok := app.rect.Load().(image.Point); ok {
+		rect = v
+	}
+	return image.Rectangle{Max: rect}
 }
 
 // Run runs child actor
@@ -79,7 +86,7 @@ func (app *RootApp) Run(parentCtx context.Context, child Actor) {
 		}
 
 		if ev, ok := e.(event.Configure); ok {
-			app.rect.Set(ev.InnerSize)
+			app.rect.Store(ev.InnerSize)
 		}
 
 		link.Put(ctx, e)

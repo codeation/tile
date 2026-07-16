@@ -14,6 +14,7 @@ type FieldView struct {
 	field      FocusFielder
 	font       *impress.Font
 	foreground fn.Color
+	width      fn.Int
 	lineHeight int
 	cursor     view.Viewer
 	maxRows    int
@@ -35,6 +36,12 @@ func (v *FieldView) LineHeight(lineHeight int) *FieldView {
 	return v
 }
 
+// Width sets a func to return width of element
+func (v *FieldView) Width(width fn.Int) *FieldView {
+	v.width = width
+	return v
+}
+
 // WithCursor adds a cursor Viewer to draw in cursor position
 func (v *FieldView) WithCursor(cursor view.Viewer) *FieldView {
 	v.cursor = cursor
@@ -47,13 +54,18 @@ func (v *FieldView) MaxRows(maxRows int) *FieldView {
 	return v
 }
 
-func (v *FieldView) splitText(rect image.Rectangle) ([]string, int, int) {
+func (v *FieldView) splitText() ([]string, int, int) {
 	output := []string{}
 	cursorIndex := v.field.Cursor()
 	row := 0
 	col := 0
 	for _, paragraph := range v.field.Strings() {
-		lines := v.font.Split(paragraph, rect.Dx(), 0)
+		var lines []string
+		if v.width != nil {
+			lines = v.font.Split(paragraph, v.width(), 0)
+		} else {
+			lines = append(lines, paragraph)
+		}
 		switch {
 		case cursorIndex > len(paragraph)+len(nl.DefaultNewLine.String()):
 			cursorIndex -= len(paragraph) + len(nl.DefaultNewLine.String())
@@ -83,11 +95,20 @@ func (v *FieldView) splitText(rect image.Rectangle) ([]string, int, int) {
 	return output, row, col
 }
 
-// Size returns size of a view element. Width of size parameter is used to split a text into sublines
-func (v *FieldView) Size(size image.Point) image.Point {
+// Size returns a element drawing size
+func (v *FieldView) Size() image.Point {
+	maxWidth := 0
+	if v.width != nil {
+		maxWidth = v.width()
+	}
 	lineCount := 0
 	for _, s := range v.field.Strings() {
-		lineCount += len(v.font.Split(s, size.X, 0))
+		if v.width != nil {
+			lineCount += len(v.font.Split(s, v.width(), 0))
+		} else {
+			lineCount++
+			maxWidth = max(maxWidth, v.font.Size(s).X)
+		}
 		if v.maxRows != 0 && lineCount > v.maxRows {
 			break
 		}
@@ -98,24 +119,29 @@ func (v *FieldView) Size(size image.Point) image.Point {
 		lineCount = min(lineCount, v.maxRows)
 	}
 
-	return image.Pt(size.X, v.lineHeight*lineCount-(v.lineHeight-v.font.Height))
+	return image.Pt(maxWidth, v.lineHeight*lineCount-(v.lineHeight-v.font.Height))
 }
 
-// Draw draws a view element. Width of rect parameter is used to split a text into sublines
-func (v *FieldView) Draw(w *impress.Window, rect image.Rectangle) {
-	lines, row, col := v.splitText(rect)
-	from := rect.Min
-	var cursorPoint image.Point
-	for i, line := range lines {
-		w.Text(line, v.font, from, v.foreground())
-		if i == row {
-			cursorPoint = from
-		}
-		from = from.Add(image.Pt(0, v.lineHeight))
+// Draw draws a element in a window width specified offset
+func (v *FieldView) Draw(w *impress.Window, from image.Point) {
+	lines, row, col := v.splitText()
+	pt := from
+	for _, line := range lines {
+		w.Text(line, v.font, pt, v.foreground())
+		pt.Y += v.lineHeight
 	}
 
 	if v.cursor != nil && v.field.Focused() {
-		cursorPoint = rect.Min.Add(image.Pt(v.font.Size(lines[row][:col]).X, row*v.lineHeight))
-		v.cursor.Draw(w, image.Rectangle{Min: cursorPoint, Max: cursorPoint.Add(image.Pt(0, v.font.LineHeight))})
+		cursorPoint := from.Add(image.Pt(v.font.Size(lines[row][:col]).X, row*v.lineHeight))
+		v.cursor.Draw(w, cursorPoint)
 	}
+}
+
+// Select returns active element and its rect for the click point
+func (v *FieldView) Select(pt image.Point, from image.Point) (any, image.Rectangle) {
+	elemRect := image.Rectangle{Min: from, Max: from.Add(v.Size())}
+	if !pt.In(elemRect) {
+		return nil, image.Rectangle{}
+	}
+	return v.field, elemRect
 }

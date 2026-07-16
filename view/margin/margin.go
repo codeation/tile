@@ -6,40 +6,38 @@ import (
 	"github.com/codeation/impress"
 
 	"github.com/codeation/tile/view"
-	"github.com/codeation/tile/view/fn"
 )
 
 // MarginView adds a margin space around any Viewer
 type MarginView struct {
 	view.Viewer
-	margin fn.Point
+	margin image.Point
 }
 
 // New creates a MarginView
 func New(viewer view.Viewer) *MarginView {
 	return &MarginView{
 		Viewer: viewer,
-		margin: fn.Const(image.Point{}),
 	}
 }
 
 // Margin sets margin space function
-func (v *MarginView) Margin(margin fn.Point) *MarginView {
+func (v *MarginView) Margin(margin image.Point) *MarginView {
 	v.margin = margin
 	return v
 }
 
 // Size returns size of a view element
-func (v *MarginView) Size(size image.Point) image.Point {
-	marginSize := v.margin()
-	x := max(size.X-marginSize.X*2, 0)
-	y := max(size.Y-marginSize.Y*2, 0)
-	return v.Viewer.Size(image.Pt(x, y)).Add(marginSize.Mul(2))
+func (v *MarginView) Size() image.Point {
+	return v.Viewer.Size().Add(v.margin.Mul(2))
 }
 
-// Draw draws a view element
-func (v *MarginView) Draw(w *impress.Window, rect image.Rectangle) {
-	marginSize := v.margin()
-	innerRect := image.Rectangle{Min: rect.Min.Add(marginSize), Max: rect.Max.Sub(marginSize)}
-	v.Viewer.Draw(w, innerRect)
+// Draw draws a element in a window width specified offset
+func (v *MarginView) Draw(w *impress.Window, from image.Point) {
+	v.Viewer.Draw(w, from.Add(v.margin))
+}
+
+// Select returns active element and its rect for the click point
+func (v *MarginView) Select(pt image.Point, from image.Point) (any, image.Rectangle) {
+	return v.Viewer.Select(pt, from.Add(v.margin))
 }

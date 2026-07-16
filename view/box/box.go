@@ -26,11 +26,15 @@ func New(viewer view.Viewer, foreground fn.Color, background fn.Color) *BoxView 
 	}
 }
 
-// Draw draws a view element
-func (v *BoxView) Draw(w *impress.Window, rect image.Rectangle) {
-	size := v.Size(rect.Size())
-	boxRect := image.Rectangle{Min: rect.Min, Max: rect.Min.Add(size)}
+// Draw draws a element in a window width specified offset
+func (v *BoxView) Draw(w *impress.Window, from image.Point) {
+	boxRect := image.Rectangle{Min: from, Max: from.Add(v.Size())}
 	w.Fill(boxRect, v.background())
 	border.Border(w, boxRect, v.foreground())
-	v.Viewer.Draw(w, rect)
+	v.Viewer.Draw(w, from)
+}
+
+// Select returns active element and its rect for the click point
+func (v *BoxView) Select(pt image.Point, from image.Point) (any, image.Rectangle) {
+	return v.Viewer.Select(pt, from)
 }

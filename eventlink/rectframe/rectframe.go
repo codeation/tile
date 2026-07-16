@@ -2,16 +2,15 @@ package rectframe
 
 import (
 	"image"
+	"sync/atomic"
 
 	"github.com/codeation/impress"
-
-	"github.com/codeation/tile/eventlink/syncvar"
 )
 
 // RectFrame contains a frame and its rectangle
 type RectFrame struct {
 	*impress.Frame
-	rect *syncvar.Var[image.Rectangle]
+	rect atomic.Value // image.Rectangle
 }
 
 // New creates a new frame
@@ -21,10 +20,11 @@ func New(
 	},
 	rect image.Rectangle,
 ) *RectFrame {
-	return &RectFrame{
+	f := &RectFrame{
 		Frame: framer.NewFrame(rect),
-		rect:  syncvar.New(rect),
 	}
+	f.rect.Store(rect)
+	return f
 }
 
 // NewRectFrame creates a child frame
@@ -34,16 +34,22 @@ func (f *RectFrame) NewRectFrame(rect image.Rectangle) *RectFrame {
 
 // Size changes the size and position of the frame
 func (f *RectFrame) Size(rect image.Rectangle) {
-	f.rect.Set(rect)
+	f.rect.Store(rect)
 	f.Frame.Size(rect)
 }
 
 // Rect returns the frame coordinates
 func (f *RectFrame) Rect() image.Rectangle {
-	return f.rect.Get()
+	if v, ok := f.rect.Load().(image.Rectangle); ok {
+		return v
+	}
+	return image.Rectangle{}
 }
 
 // InnerRect returns the coordinates of the inner rectangle
 func (f *RectFrame) InnerRect() image.Rectangle {
-	return image.Rectangle{Max: f.rect.Get().Size()}
+	if v, ok := f.rect.Load().(image.Rectangle); ok {
+		return image.Rectangle{Max: v.Size()}
+	}
+	return image.Rectangle{}
 }
