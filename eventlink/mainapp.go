@@ -17,25 +17,18 @@ import (
 type RootApp struct {
 	application *impress.Application
 	rect        atomic.Value // image.Point
-	cancelFunc  func()
 }
 
 // MainApp creates RootApp from impress.Application
 func MainApp(a *impress.Application) *RootApp {
 	return &RootApp{
 		application: a,
-		cancelFunc:  func() {},
 	}
 }
 
 // Application returns impress.Application
 func (app *RootApp) Application() *impress.Application {
 	return app.application
-}
-
-// Cancel cancels child context.Context
-func (app *RootApp) Cancel() {
-	app.cancelFunc()
 }
 
 // Close closes MainApp resources include impress.Application
@@ -73,9 +66,9 @@ func (app *RootApp) InnerRect() image.Rectangle {
 
 // Run runs child actor
 func (app *RootApp) Run(parentCtx context.Context, child Actor) {
-	var ctx context.Context
-	ctx, app.cancelFunc = context.WithCancel(parentCtx)
+	ctx, cancelFunc := context.WithCancel(parentCtx)
 	link := New()
+	link.setNextFunc(cancelFunc)
 	link.Link(ctx, app, child)
 	defer link.Close()
 

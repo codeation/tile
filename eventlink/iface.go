@@ -33,14 +33,14 @@ type Linker interface {
 	Put(ctx context.Context, ev event.Eventer)
 	// Link links the parent event link with a new child controller.
 	Link(ctx context.Context, appFramer AppFramer, actor Actor)
+	// Cancel cancels a child controller context.
+	Cancel()
 }
 
 // Control is an interface that provides methods for accessing application-level methods.
 type Control interface {
 	// Application returns the current application instance.
 	Application() *impress.Application
-	// Cancel cancels a child controller context.
-	Cancel()
 }
 
 // Framer is an interface that provides methods for accessing and manipulating the parent frame.

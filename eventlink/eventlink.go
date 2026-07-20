@@ -16,6 +16,7 @@ type EventLink struct {
 	actor      Actor
 	ctx        context.Context
 	cancelFunc context.CancelFunc
+	nextFunc   context.CancelFunc
 	mutex      sync.RWMutex
 	wg         sync.WaitGroup
 }
@@ -61,6 +62,13 @@ func (c *EventLink) Link(parentCtx context.Context, appFramer AppFramer, child A
 	})
 }
 
+func (c *EventLink) setNextFunc(fn context.CancelFunc) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	c.nextFunc = fn
+}
+
 // Cancel cancels the current child context, if one exists.
 func (c *EventLink) Cancel() {
 	c.mutex.RLock()
@@ -68,6 +76,9 @@ func (c *EventLink) Cancel() {
 
 	if c.cancelFunc != nil {
 		c.cancelFunc()
+	}
+	if c.nextFunc != nil {
+		c.nextFunc()
 	}
 }
 
