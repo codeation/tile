@@ -8,7 +8,7 @@ import (
 	"github.com/codeation/tile/eventlink"
 )
 
-// FixedWindow is a fixed-size window that implements area.Area interface.
+// FixedWindow is a fixed-size window container that implements area.Area interface.
 type FixedWindow struct {
 	w   *impress.Window
 	app *impress.Application
