@@ -9,6 +9,7 @@ import (
 	"github.com/codeation/tile/control"
 	"github.com/codeation/tile/control/key"
 	"github.com/codeation/tile/elem/field"
+	"github.com/codeation/tile/elem/nl"
 	"github.com/codeation/tile/eventlink"
 )
 
@@ -45,11 +46,16 @@ func (c *FieldControl) Control(ctx context.Context, app eventlink.App, e event.E
 		}
 	case event.Clipboard:
 		if text, ok := ev.Data.(clipboard.Text); ok {
-			for _, r := range text {
-				if !unicode.IsGraphic(r) {
-					continue
+			for i, s := range nl.Split(string(text)) {
+				if i != 0 {
+					c.f.InsertNL()
 				}
-				c.f.Insert(r)
+				for _, r := range s {
+					if !unicode.IsGraphic(r) {
+						continue
+					}
+					c.f.Insert(r)
+				}
 			}
 			return
 		}
